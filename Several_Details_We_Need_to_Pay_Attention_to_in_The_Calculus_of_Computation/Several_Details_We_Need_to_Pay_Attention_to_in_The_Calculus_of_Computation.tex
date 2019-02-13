@@ -1,0 +1,191 @@
+% !TEX program = xelatex
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[marginal]{footmisc}
+\usepackage{url}
+
+\author{Ziheng Zhuang}
+\title{Several Details We Need to Pay Attention to in Propositional Logic and other forms of logic mentioned in The Calculus of Computation}
+\date{January 2019}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section*{Introduction}
+This is the Notebook I wrote to better explain ideas included in <<The Calculus of Computation>>, which haven't been clarified clearly in the original book. It would be my great honor if this book helped you in the process of studying computational calculus.
+\newline
+January 2019 in Hangzhou
+\newpage
+
+\section{NNF, DNF and CNF}
+\textbf{Small references:}\\
+\url{https://en.wikipedia.org/wiki/Negation_normal_form}
+\url{https://en.wikipedia.org/wiki/Conjunctive_normal_form}
+\url{https://en.wikipedia.org/wiki/Disjunctive_normal_form}
+
+\subsection{Definitions}
+NNF, DNF, and CNF are quite important PL forms in Proposisional Logic. Only after you understand them can you continue your study in this field.\\\\
+\textbf{NNF(Negation Normal Form):} Formulae with $\neg$ in front of formulae with only $\lor$ $\land$. The following formulae are examples\\\\
+$$\neg F_1$$
+$$(F_1\ \lor\ F_2)\ \land\ F_3$$\\\\
+\textbf{Be alert that NNF can be DNF and CNF and both and neither}
+\textbf{DNF(Disjunctive Normal Form)\footnote{Check on Wikipedia}:} Formulae which was connected by $\lor$ and allows $\land$ in parentheses. The following formulae are examples.\\\\
+$$F_1$$
+$$F_1\ \land\ F_2$$
+$$(F_1\ \land\ F_2)\ \lor\ F_3$$
+$$(F_1\ \land\ F_2)\ \lor\ (F_3\ \land\ F_4)$$\\\\
+\textbf{CNF(Conjunctive Normal Form)\footnote{Check on Wikipedia}:} Formulae which was connected by $\land$ and allows $\lor$ in parentheses. The following formulae are examples.\\\\
+$$F_1$$
+$$F_1\ \lor\ F_2$$
+$$(F_1\ \lor\ F_2)\ \land\ F_3$$
+$$(F_1\ \lor\ F_2)\ \land\ (F_3\ \lor\ F_4)$$\\\\
+Be alarmed that $F_1\ \lor\ F_2$ and $F_1\ \land\ F_2$ are both in the concept of DNF and CNF.\\\\
+
+\subsection{Conversion}
+\textbf{We have several methods to convert formulae between the form of DNF and CNF(The convertion between NNF and DNF/CNF is simple and I won't explain it here.)\footnote{Check the TCoC page 32 to 34}}\\\\
+$$(A \land B) \lor C \ \Leftrightarrow\  (A \lor C) \land (B \lor C)$$
+$$(A \lor B) \land C \ \Leftrightarrow\  (A \land C) \lor (B \land C)$$\\\\
+
+\section{The Resolution Procedure}
+\subsection{Basic Concepts}
+\textbf{In CNF, we could see interesting characteristics. All the subformulae connected by $\land$ should be true in order to make formula satisfiable. So, if we could see subformulae like $C_1[P]$ and $C_2[\neg P]$, we could deduce that $C_1[\bot]\ \lor\ C_2[\bot]$ must be true. Why? Because subformulae $C_1$ and $C_2$ are connected by $\lor$, and P and $\neg$P carry opposite truth. If P is true, then $C_2$ must be true to make $C_2[\neg P]$ true. If P is false, then $C_1$ must be true to make $C_1[P]$ true. So, we could deduce that $C_1\ \lor\ C_2$ must be true.}\\\\
+Now let's have an example to polish our techniques and enhance our understanding.\\\\
+Test whether $(P \rightarrow Q) \land P \land Q$ is satisfiable.\\\\
+$ans \iff (\neg P \lor Q) \land P \land \neg Q$\\\\
+Now we have the formula in CNF.\\\\
+$ans \iff (\neg P \lor Q) \land P \land \neg Q \land Q$\\\\
+Now we could infer from $\neg Q$ and $Q$ that ans is not satisfiable.\\\\
+
+\subsection{Tips}
+\textbf{Now, from the process of calculation, we could conclude some useful tips. If the subformula is P, then we could turn it into $P \lor \bot$, which is equivilant to P. Take $\neg P \land P$ for example.}\\\\
+$$((\neg P) \lor \bot) \land (P \lor \bot)$$\\\\
+\textbf{From the formula, we conclude that $\bot \lor \bot$ must be true, which contradicts with the truth, so formula is not satisfiable.}\\\\
+Moreover, we can see that we had just add the result of two subformulae to the end of F and connect it with $\land$. Why? Because we had just deduced the result, call it R, form subformulae $F_1$ and $F_2$. R carries the similarities of $F_1$ and $F_2$, but discards the differences of $F_1$ and $F_2$. We could boost our calculation by accessing meta info directly from R, but we can't ignore details hidden in $F_1$ and $F_2$. So, if F want to be satisfiable, all the subformulae must be true($F_1$, $F_2$ and R).\\\\
+So, have an exercise to check your learning!\\\\
+$$F: (\neg P \lor Q) \land \neg Q$$
+$$\frac{(\neg P \lor Q) \qquad (\neg Q)}{\neg P \lor \bot}$$
+So, $\neg P \lor \bot$ must be true, P = $\bot$\\\\
+Actually, $I: {P = \bot, Q = \bot}$ is the exact interpretation to make F satisfiable.\\\\
+Unit Propagation is not as useful as pure Literal Elimination since in some cases UP can't make formula simpler.
+
+\section{DPLL and BCP}
+\textbf{Small reference:}\\
+\url{https://en.wikipedia.org/wiki/DPLL_algorithm}
+
+\subsection{Words to remember}
+\textbf{BCP: Boolean Constraint Propagation}\\
+\textbf{Constraint: to limit something}\\
+\textbf{Propagation: to spread something}\\
+\textbf{Resolvent: take something apart}\\
+\textbf{Cascade: sequence of levels}\\
+\textbf{Polarity: have two distinctive sides}\\
+\textbf{Prune: cut branches which are not meeded in the process}
+
+\subsection{Basic Concepts}
+BCP is pretty similar to previous methods we had just introduced. It's like:
+$$\frac{\epsilon \qquad C[\neg \epsilon]}{C[\bot]}$$    
+Hence, the resolvent replaces the second clause.\\
+Have an example!
+$$F: (P) \land (\neg P \lor Q) \land (R \lor \neg Q \lor S)$$
+Apply unit resolution
+$$\frac{P\qquad \qquad \neg P \lor Q}{Q}$$
+$$F \iff Q \land (R \lor \neg Q \lor S)$$
+Again $$\frac{Q\qquad \qquad R \lor S \lor \neg Q}{R \lor S}$$
+$$F^2 = R \lor S$$\\\\
+The formula looks awesome, ins't it? But I've found an error hidden inside it. Suppose we have an formula:
+$$F: P \land (\neg P \lor Q) \land (\neg P \lor \neg Q)$$
+Use the technique we've just learnt.
+$$F^1 = Q \land (\neg P \lor \neg Q)$$
+$$F_2 = \neg P$$
+So, P is $\bot$
+But wait a minute! $P$ can't be $\bot$! The first literal should be true! Why would it happen?\\\\
+Well, the replacement of resolvent discards the existence of P, meaning we would find it OK for P to be false since we throw P away in the replacement. This process is an error. But in some occasion, it can be true. When the remaining literals do not contain any P, it could be true.\\\\
+
+\subsection{Basic Ideas About DPLL}
+From ducuments in wikipedia, we can see that DPLL algorithm is just assigning every possible value to every literal to see if it makes formula satisfiable. This is just a brutal method. Essentially, it is a search algorithm. But we have two pruning tools which could be used to shroten the search process. They are \textbf{Unit Propagation} and \textbf{Pure literal elimination}\\\\
+\subsubsection{Pure literal elimination}
+You may ask why I would talk about PLE first since I put UP in the first in the last paragraph. Well, PLE is simpler, compared to UP.\\\\
+In a formula, if unit literal(for instance: P) appears only in one polarity(only P or only $\neg P$), we can simply delete those clauses containing the unit literal. For example:
+$$P \land (P \lor Q \lor R) \land (P \lor \neg Q \lor R)$$
+Could be simplified to:
+$$(Q \lor R) \land (\neg Q \lor R)$$
+Or even simpler:
+$$Q \land \neg Q$$
+We can easily arrive at an conclusion that the original formula is unsatisfiable. But you may ask how could make those conversion to simplify the formula. \textbf{Well, the goal of out DPLL algorithm is to check whether the formula is satisfiable or not, not to give the interpretation if the formula is satisfiable. So, any clause could have the pure literal as true since assign it as true could give us more choices, why would we assign it as false if we could give it true? To extend the topic, if simplified formula could be true, then the original formula must be satisfiable. If the converted formula could not find an interpretation for itself to be true, then original formula can't be satisfiable.That's the theory of Pure Literal Elimination.}\\\\
+\subsubsection{Unit Propagation}
+\textbf{Unit propagation and BCP carry the same meaning}\\\\
+The concept of Unit Propagation is more complex than pruning method mentioned in the last section. The basic form of Unit propagation is to find two clauses. One is an unit literal, one contains the negation of the unit literal, then have some operation on it.\footnote{Check page 42 of the book, pdf file} But I find it unrobust. In real life, we might encounter formula containing 3 or more unit literals, and the original definition of Unit Propagation could not deal with those situation. So I would give my sollution.\\\\
+\textbf{The improved Unit Propagation is the process that could deal with 3 or more unit literals. Let's use exampls to explain:}
+We have the formula:
+$$P \land (\neg P \lor Q \lor R) \land (P \lor \neg Q \lor R)$$
+\textbf{We can simply interprete P as $\top$, as the only unit literal appeared in a clause, P must be true to make formula closer to the result. If you assign P as false, then the original formula must be unsatisfiable. That's the principle of Improved Unit Propagation\footnote{I don't know if this method was invented by me, NeoClear}. Be careful, the unit literal must be the only unit literal in a clause.}\\\\
+Let's solve the previous problem:
+$$F^1: \top \land (\bot \lor Q \lor R) \land (\top \lor \neg Q \lor R)$$
+$$\iff Q \lor R$$ with the interpretation $$I: {P \rightarrow \top}$$
+And it is true with a single literal $\neg P$\\
+Actually, we could combine Unit Propagation and Pure Literal Elimination together. I will give the work to you.\\\\
+
+\section{General Introduction to First-Order Logic}
+\subsection{Words:}
+\textbf{Rigorous: without error and take everything into consideration}\\
+\textbf{Predicate: assert}\\
+\textbf{Quantifier: a word that indicates the range of individuals or items referred to, e.g. "all," "some," or "most," or a logical symbol with this meaning}\\
+\textbf{Decidability: could be judged or not}\\
+\textbf{Intrinsic: have the characteristic originally}\\
+\textbf{Soundness: robustness}\\
+\textbf{Existential: have one which meets the requirement}\\
+\textbf{Universal: for elements must meet the requirement}\\
+\textbf{Cardinality: size}\\
+\textbf{Countable: able to make one to one correspondence with positive integers, no matter finite or infinite}\\
+
+
+\subsection{Syntax And Sematics}
+The syntax of FOL is quite different from that of PL. PL literals only contain true or false. In comparison, FOL contains values other than truth values such as integers and cards. FOL use x, y, z, $x_1, x_2$ as variables, and use a, b, c, $a_1, a_2$ as constants. Moreover, FOL have functions viewed as f, g, h, $f_1, f_2$. A  constantcan also be viewed as 0-array function.\\
+FOL has two quantifiers, called \textbf{Forall, Exists} respectively. And they look like these: $\forall, \exists$\\
+A variable is \textbf{free} if it is not bound by any quantifier, and a variable is \textbf{bound} if it is bound by a quantifier. A formula is \textbf{closed} if all the variables contained in it are bound variables.\\\\
+An error occurred on page 51, the first problem of Example 2.5, author seemed to miss some of the subformulae.\\\\
+
+\subsection{Definition of Quantifiers}
+The definition of $\forall$ and $\exists$ is brilliant and awesome.
+$$I \models \forall x.F \iff \forall v \in D_I, I \triangleleft \lbrace x \rightarrow v \rbrace \models F$$
+$$I \models \exists x.F \iff \exists v \in D_I, I \triangleleft \lbrace x \rightarrow v \rbrace \models F$$
+
+\subsection{Satisfiability And Validity}
+Now we arrive at it again in FOL.\\
+Everything is find, but they give us some stupid convention.\\
+If we say that if $free(F) \neq \emptyset$ is valid, they mean that its universal closure $\forall *.F$ is valid; If $free(F) \neq \emptyset$ is satisfiable, they mean that its existential closure $\exists *.F$ is satisfiable.
+
+\section{Induction}
+\subsection{Words}
+\textbf{Lexicographic: arrange words according to their sequence in the dictionary}\\
+
+
+\subsection{Important Concepts}
+\textbf{Well-Founded Induction: }You can find the definition on wikipedia, but what has been depicted on page 115 is clearer than online definition. A relation is well-founded iff there exists a finite sequence of elements of S. For example, > is well-founded on the scale of natural numbers, but it is nit well-founded over real numbers.\\
+One well-founded relation is called lexicographic relation\footnote{Page 117}. And the definition of relation $<$ a match process.\\
+Example 4.7 on page 117 is very interesting and is an real example of lexicographical relation. they summarize the problem as the problem of lexicographical sequence and prove each previous bag status is bigger than current status based on the definition of $<$.\\\\
+
+\subsection{Ackermann Function}
+Ackermann function on wikipedia has 3 parameters, but on page 119, Ackermann function has only 2 parameters.\\
+
+\section{Program Correctness: Mechanics}
+\subsection{Words}
+\textbf{Specification: a detailed description, especially one providing information needed to make, build, or produce something}\\
+\textbf{Scheme: plan}\\
+\textbf{Annotation: the addition of explanatory or critical comments to a text}\\
+\textbf{Pivot: to turn on a pivot, or make something do this}\\
+\textbf{Discernible: able to be seen, noticed, or understood}\\
+ 
+
+\newpage
+\begin{thebibliography}{1}
+    \bibitem{The Calculus of Computation: Decision Procedures with Applications to Verification}The Calculus of Computation: Decision Procedures with Applications to Verification
+\end{thebibliography}
+
+\begin{appendix}
+    \section{Websites For Papers}Library Genesis: http://gen.lib.rus.ec/
+\end{appendix}
+
+\end{document}
